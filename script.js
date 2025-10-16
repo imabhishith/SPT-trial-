@@ -2350,7 +2350,6 @@ function openPrintWindow(title, content) {
         margin-bottom: 32px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-
     .print-header::before {
         content: '';
         position: absolute;
@@ -2361,7 +2360,6 @@ function openPrintWindow(title, content) {
         background: rgba(255,255,255,0.1);
         border-radius: 50%;
     }
-
     .print-header::after {
         content: '';
         position: absolute;
@@ -3492,5 +3490,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initializePrintExport();
   }, 1000);
 });
+
 
 
