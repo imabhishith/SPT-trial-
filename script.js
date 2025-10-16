@@ -3070,7 +3070,7 @@ function printStudentProfileReport(student) {
     ${printStyles}
     <div class="student-profile-print">
       <div class="print-header">
-        <img src="https://i.postimg.cc/T1QBcjkr/crispr.png" alt="Institute Logo">
+        <img src="logo.png" alt="Institute Logo">
         <h1>CRISPR</h1>
         <p>REPEATER'S BATCH 2025-26</p>
         <p>Student Performance Analysis Report</p>
@@ -3141,8 +3141,8 @@ function printStudentProfileReport(student) {
       </div>
 
       <div class="print-footer">
-        <p>Generated on ${new Date().toLocaleDateString()} | CRISPR - Advanced Student Performance Analysis Portal</p>
-        <p>© 2025 IISER Bhopal - Repeater's Batch 2025-26</p>
+        <p>Generated on ${new Date().toLocaleDateString()} | CRISPR - Student Performance Analysis Portal</p>
+        <p>© 2025 CRISPR - Repeater's Batch 2025-26</p>
       </div>
     </div>
   `;
