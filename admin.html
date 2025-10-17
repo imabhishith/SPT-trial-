@@ -6,6 +6,11 @@
     <title>REPEATER'S BATCH 2025-26 - Enhanced Analytics Portal</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <!-- Required Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+<script src="script.js"></script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -706,15 +711,42 @@
                             <p>Select specific exam to print</p>
                         </div>
                     </div>
-                    <div class="print-option-card" onclick="selectStudentForProfile()">
-                        <div class="option-icon">
-                            <i class="fas fa-user-graduate"></i>
-                        </div>
-                        <div class="option-content">
-                            <h4>Student Profile</h4>
-                            <p>Print individual student report</p>
-                        </div>
-                    </div>
+                    <div class="print-option-card" onclick="openStudentSelectionModal('profile')">
+    <div class="option-icon">
+        <i class="fas fa-user-graduate"></i>
+    </div>
+    <div class="option-content">
+        <h4>Student Profile</h4>
+        <p>Select students for profiles</p>
+    </div>
+</div>
+<div class="print-option-card" onclick="openClassPerformanceModal()">
+    <div class="option-icon">
+        <i class="fas fa-chart-bar"></i>
+    </div>
+    <div class="option-content">
+        <h4>Class Performance Summary</h4>
+        <p>Overall class analytics</p>
+    </div>
+</div>
+<div class="print-option-card" onclick="openSubjectSelectionModal()">
+    <div class="option-icon">
+        <i class="fas fa-chart-line"></i>
+    </div>
+    <div class="option-content">
+        <h4>Subject-Specific Reports</h4>
+        <p>Select subjects to analyze</p>
+    </div>
+</div>
+<div class="print-option-card" onclick="openStudentSelectionModal('progress')">
+    <div class="option-icon">
+        <i class="fas fa-chart-area"></i>
+    </div>
+    <div class="option-content">
+        <h4>Progress Tracking Reports</h4>
+        <p>Select students for progress</p>
+    </div>
+</div>
                 </div>
             </div>
         </div>
@@ -804,6 +836,95 @@
         </div>
     </div>
 
+  <!-- Student Selection Modal -->
+<div class="modal" id="studentSelectionModal" style="display: none;">
+    <div class="modal-overlay" onclick="closeStudentSelectionModal()"></div>
+    <div class="modal-container" style="max-width: 700px;">
+        <div class="modal-header">
+            <h2><i class="fas fa-users"></i> <span id="studentModalTitle">Select Students</span></h2>
+            <button class="modal-close" onclick="closeStudentSelectionModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="selection-controls">
+                <button class="btn-secondary" onclick="selectAllStudents()">
+                    <i class="fas fa-check-double"></i> Select All
+                </button>
+                <button class="btn-secondary" onclick="deselectAllStudents()">
+                    <i class="fas fa-times-circle"></i> Deselect All
+                </button>
+                <span class="selection-count" id="studentSelectionCount">0 selected</span>
+            </div>
+            
+            <div class="student-list-container">
+                <div id="studentCheckboxList" class="student-checkbox-list"></div>
+            </div>
+            
+            <div class="modal-footer-actions">
+                <button class="btn-secondary" onclick="closeStudentSelectionModal()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button class="btn-primary" onclick="generateStudentReports()">
+                    <i class="fas fa-download"></i> Generate Reports
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Subject Selection Modal -->
+<div class="modal" id="subjectSelectionModal" style="display: none;">
+    <div class="modal-overlay" onclick="closeSubjectSelectionModal()"></div>
+    <div class="modal-container" style="max-width: 500px;">
+        <div class="modal-header">
+            <h2><i class="fas fa-flask"></i> Select Subjects</h2>
+            <button class="modal-close" onclick="closeSubjectSelectionModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="selection-controls">
+                <button class="btn-secondary" onclick="selectAllSubjects()">
+                    <i class="fas fa-check-double"></i> Select All
+                </button>
+                <button class="btn-secondary" onclick="deselectAllSubjects()">
+                    <i class="fas fa-times-circle"></i> Deselect All
+                </button>
+                <span class="selection-count" id="subjectSelectionCount">0 selected</span>
+            </div>
+            
+            <div class="subject-list-container">
+                <div class="subject-checkbox-item" onclick="toggleSubjectSelection(this)">
+                    <input type="checkbox" value="chem" id="subject-chem" onclick="event.stopPropagation(); updateSubjectCount();">
+                    <label for="subject-chem"><i class="fas fa-flask"></i><span>CHEMISTRY</span></label>
+                </div>
+                <div class="subject-checkbox-item" onclick="toggleSubjectSelection(this)">
+                    <input type="checkbox" value="phy" id="subject-phy" onclick="event.stopPropagation(); updateSubjectCount();">
+                    <label for="subject-phy"><i class="fas fa-atom"></i><span>PHYSICS</span></label>
+                </div>
+                <div class="subject-checkbox-item" onclick="toggleSubjectSelection(this)">
+                    <input type="checkbox" value="bio" id="subject-bio" onclick="event.stopPropagation(); updateSubjectCount();">
+                    <label for="subject-bio"><i class="fas fa-dna"></i><span>BIOLOGY</span></label>
+                </div>
+                <div class="subject-checkbox-item" onclick="toggleSubjectSelection(this)">
+                    <input type="checkbox" value="math" id="subject-math" onclick="event.stopPropagation(); updateSubjectCount();">
+                    <label for="subject-math"><i class="fas fa-calculator"></i><span>MATHEMATICS</span></label>
+                </div>
+            </div>
+            
+            <div class="modal-footer-actions">
+                <button class="btn-secondary" onclick="closeSubjectSelectionModal()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button class="btn-primary" onclick="generateSubjectReports()">
+                    <i class="fas fa-download"></i> Generate Reports
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+    
     <!-- Enhanced Footer -->
 <footer class="main-footer">
     <div class="footer-content">
@@ -916,3 +1037,4 @@
 
 </body>
 </html>
+
