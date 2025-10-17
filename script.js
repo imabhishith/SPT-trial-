@@ -3197,6 +3197,188 @@ function updateFooterStats() {
     }
 }
 
+// Global variables
+let currentReportType = '';
+
+// Student Selection Modal Functions
+function openStudentSelectionModal(type) {
+    currentReportType = type;
+    closePrintExportModal();
+    
+    const modal = document.getElementById('studentSelectionModal');
+    const title = document.getElementById('studentModalTitle');
+    
+    if (type === 'profile') {
+        title.textContent = 'Select Students for Profile Reports';
+    } else if (type === 'progress') {
+        title.textContent = 'Select Students for Progress Tracking';
+    }
+    
+    populateStudentList();
+    modal.style.display = 'flex';
+}
+
+function closeStudentSelectionModal() {
+    document.getElementById('studentSelectionModal').style.display = 'none';
+}
+
+function populateStudentList() {
+    const container = document.getElementById('studentCheckboxList');
+    container.innerHTML = '';
+    
+    const sortedStudents = [...students].sort((a, b) => a.roll.localeCompare(b.roll));
+    
+    sortedStudents.forEach(student => {
+        const item = document.createElement('div');
+        item.className = 'student-checkbox-item';
+        item.onclick = function(e) {
+            if (e.target.tagName !== 'INPUT') {
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                checkbox.checked = !checkbox.checked;
+                this.classList.toggle('selected', checkbox.checked);
+                updateStudentCount();
+            }
+        };
+        
+        item.innerHTML = `
+            <input type="checkbox" value="${student.roll}" onclick="event.stopPropagation(); updateStudentCount();">
+            <label>
+                <span class="student-roll">${student.roll}</span>
+                <span class="student-name">${student.name}</span>
+            </label>
+        `;
+        
+        container.appendChild(item);
+    });
+    updateStudentCount();
+}
+
+function selectAllStudents() {
+    document.querySelectorAll('#studentCheckboxList input[type="checkbox"]').forEach(cb => {
+        cb.checked = true;
+        cb.closest('.student-checkbox-item').classList.add('selected');
+    });
+    updateStudentCount();
+}
+
+function deselectAllStudents() {
+    document.querySelectorAll('#studentCheckboxList input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+        cb.closest('.student-checkbox-item').classList.remove('selected');
+    });
+    updateStudentCount();
+}
+
+function updateStudentCount() {
+    const count = document.querySelectorAll('#studentCheckboxList input[type="checkbox"]:checked').length;
+    document.getElementById('studentSelectionCount').textContent = `${count} selected`;
+}
+
+async function generateStudentReports() {
+    const selected = Array.from(document.querySelectorAll('#studentCheckboxList input[type="checkbox"]:checked'));
+    
+    if (selected.length === 0) {
+        alert('Please select at least one student');
+        return;
+    }
+    
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    
+    if (selected.length === 1) {
+        // Single student - direct print
+        const roll = selected[0].value;
+        if (currentReportType === 'profile') {
+            printStudentProfile(roll);
+        } else {
+            generateProgressReportForStudent(roll);
+        }
+    } else {
+        // Multiple students - create ZIP
+        await generateBulkPDFs(selected.map(s => s.value));
+    }
+    
+    document.getElementById('loadingOverlay').style.display = 'none';
+    closeStudentSelectionModal();
+}
+
+async function generateBulkPDFs(rolls) {
+    const zip = new JSZip();
+    
+    for (const roll of rolls) {
+        const student = students.find(s => s.roll === roll);
+        if (!student) continue;
+        
+        const html = currentReportType === 'profile' ? 
+            generateStudentProfileHTML(student) : 
+            generateProgressReportHTML(student);
+        
+        const filename = `${student.name.replace(/s+/g, '_')}_${currentReportType}.pdf`;
+        zip.file(filename, html);
+    }
+    
+    const blob = await zip.generateAsync({type: "blob"});
+    saveAs(blob, `CRISPR_Reports_${new Date().toISOString().split('T')[0]}.zip`);
+    alert(`Generated ${rolls.length} reports successfully!`);
+}
+
+// Subject Selection Modal Functions
+function openSubjectSelectionModal() {
+    closePrintExportModal();
+    document.getElementById('subjectSelectionModal').style.display = 'flex';
+    updateSubjectCount();
+}
+
+function closeSubjectSelectionModal() {
+    document.getElementById('subjectSelectionModal').style.display = 'none';
+}
+
+function toggleSubjectSelection(item) {
+    const checkbox = item.querySelector('input[type="checkbox"]');
+    checkbox.checked = !checkbox.checked;
+    item.classList.toggle('selected', checkbox.checked);
+    updateSubjectCount();
+}
+
+function selectAllSubjects() {
+    document.querySelectorAll('#subjectSelectionModal input[type="checkbox"]').forEach(cb => {
+        cb.checked = true;
+        cb.closest('.subject-checkbox-item').classList.add('selected');
+    });
+    updateSubjectCount();
+}
+
+function deselectAllSubjects() {
+    document.querySelectorAll('#subjectSelectionModal input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+        cb.closest('.subject-checkbox-item').classList.remove('selected');
+    });
+    updateSubjectCount();
+}
+
+function updateSubjectCount() {
+    const count = document.querySelectorAll('#subjectSelectionModal input[type="checkbox"]:checked').length;
+    document.getElementById('subjectSelectionCount').textContent = `${count} selected`;
+}
+
+function generateSubjectReports() {
+    const selected = Array.from(document.querySelectorAll('#subjectSelectionModal input[type="checkbox"]:checked'));
+    
+    if (selected.length === 0) {
+        alert('Please select at least one subject');
+        return;
+    }
+    
+    const subjects = selected.map(s => s.value);
+    generateSubjectSpecificReport(subjects);
+    closeSubjectSelectionModal();
+}
+
+function openClassPerformanceModal() {
+    closePrintExportModal();
+    // Generate class performance summary
+    generateClassPerformanceSummary();
+            }
+
 // Refresh all data function
 function refreshAllData() {
     if (typeof showLoadingOverlay === 'function') {
